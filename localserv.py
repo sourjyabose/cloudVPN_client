@@ -8,15 +8,14 @@ dns={}
 sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
 sock.bind(("0.0.0.0",8080));
 sock.listen(5);
-datapackets=queue.Queue();
+
 
 servsocklist=[("192.168.173.201",8081),("10.46.211.253",8081)]
-servsstor=[]
-servreflist={}
+
 
 
 socketstorage={}
-def sendtoserverqueue(c,addr):
+def sendtoserverqueue(c,addr,datapackets):
     magnum=random.randint(1,20000)    
     firstbindat=c.recv(1024)
     c.setblocking(False)
@@ -41,7 +40,7 @@ def sendtoserverqueue(c,addr):
     socketstorage[magnum]=c;
     #relsock.setblocking(False)
     datapackets.put(b"jiolinkXoXoXoXsourjyakrishna"+f"{ip} {port} {magnum}".encode()+b"VooXoBsourjyaraushan"+firstbindat.split(b"\r\n\r\n")[1])
-    servreflist[magnum]=servsstor[magnum%len(servsstor)]
+    
     while True:
         sel,_,_=select.select([c],[],[])
         if(c in sel):
@@ -58,15 +57,13 @@ def sendtoserverqueue(c,addr):
                 #relsock.close()
                 break;
 
-def senddatatoserver():
+def senddatatoserver(datapackets,sockserv):
     #dpl=len(datapackets)
     #ind=0;
     while True:
         #if(ind!=len(datapackets)):
         procbuf=datapackets.get();
-        tprocbuf=procbuf;
-        pktheader=tprocbuf.split(b"jiolinkXoXoXoXsourjyakrishna")[1].split(b"VooXoBsourjyaraushan")[0].decode().split()
-        servreflist[int(pktheader[2])].sendall(procbuf);
+        sockserv.sendall(procbuf);
             #dpl=len(datapackets)
             #ind+=1;
 def receivefromserverandsendtoclient(clts):
@@ -109,15 +106,18 @@ def receivefromserverandsendtoclient(clts):
             except:
                 print("Connection closed from browser: ",payloadheader)
             #print(payloaddata.decode())
+dpq=[]
 for inx,servs in enumerate(servsocklist):
     clts=socket.socket()
     clts.connect(servs)
-    servsstor.append(clts);
+    datapackets=queue.Queue();
+    dpq.append(datapackets);
     threading.Thread(target=receivefromserverandsendtoclient,args=(clts,)).start()
-threading.Thread(target=senddatatoserver).start();
+    threading.Thread(target=senddatatoserver,args=(datapackets,clts)).start();
+
 #threading.Thread(target=receivefromserverandsendtoclient).start()
 while True:
     cl,addr1=sock.accept()
-    threading.Thread(target=sendtoserverqueue,args=(cl,addr1)).start()
+    threading.Thread(target=sendtoserverqueue,args=(cl,addr1,dpq[random.randint(1,20000)%len(dpq)])).start()
 
 
