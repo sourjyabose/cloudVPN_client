@@ -87,7 +87,7 @@ def receivefromserverandsendtoclient():
         buf[len(buf)-1]=b''
         for dpack in buf:
             if(dpack==b''):
-                #print("Execution halt prelouge");
+                #print("Execution halt prelouge")
                 continue;
             
             payloadheader,payloaddata=dpack.split(b"VooXoBsourjyaraushan")
