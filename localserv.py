@@ -1,4 +1,4 @@
-import socke
+import socket
 import requests
 import select
 import threading
@@ -9,8 +9,12 @@ sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
 sock.bind(("0.0.0.0",8080));
 sock.listen(5);
 datapackets=queue.Queue();
-towardsserver=socket.socket()
-towardsserver.connect(("192.168.173.201",8081))
+
+servsocklist=[("192.168.173.201",8081),("10.46.211.253",8081)]
+servsstor=[]
+servreflist={}
+
+
 socketstorage={}
 def sendtoserverqueue(c,addr):
     magnum=random.randint(1,20000)    
@@ -37,6 +41,7 @@ def sendtoserverqueue(c,addr):
     socketstorage[magnum]=c;
     #relsock.setblocking(False)
     datapackets.put(b"jiolinkXoXoXoXsourjyakrishna"+f"{ip} {port} {magnum}".encode()+b"VooXoBsourjyaraushan"+firstbindat.split(b"\r\n\r\n")[1])
+    servreflist[magnum]=servsstor[magnum%len(servsstor)]
     while True:
         sel,_,_=select.select([c],[],[])
         if(c in sel):
@@ -58,19 +63,22 @@ def senddatatoserver():
     #ind=0;
     while True:
         #if(ind!=len(datapackets)):
-        towardsserver.sendall(datapackets.get());
+        procbuf=datapackets.get();
+        tprocbuf=procbuf;
+        pktheader=tprocbuf.split(b"jiolinkXoXoXoXsourjyakrishna")[1].split(b"VooXoBsourjyaraushan")[0].decode().split()
+        servreflist[int(pktheader[2])].sendall(procbuf);
             #dpl=len(datapackets)
             #ind+=1;
-def receivefromserverandsendtoclient():
+def receivefromserverandsendtoclient(clts):
     secondbuff=b''
-    towardsserver.setblocking(True)
+    clts.setblocking(True)
     print("------")
     checkandbreak=1
     while True:
         
         try:
             
-            receiveddat=secondbuff+towardsserver.recv(1000000000)
+            receiveddat=secondbuff+clts.recv(1000000000)
             print("Returning recv len: ",len(receiveddat))
             
             if(checkandbreak!=1):
@@ -101,8 +109,13 @@ def receivefromserverandsendtoclient():
             except:
                 print("Connection closed from browser: ",payloadheader)
             #print(payloaddata.decode())
+for inx,servs in enumerate(servsocklist):
+    clts=socket.socket()
+    clts.connect(servs)
+    servsstor.append(clts);
+    threading.Thread(target=receivefromserverandsendtoclient,args=(clts,)).start()
 threading.Thread(target=senddatatoserver).start();
-threading.Thread(target=receivefromserverandsendtoclient).start()
+#threading.Thread(target=receivefromserverandsendtoclient).start()
 while True:
     cl,addr1=sock.accept()
     threading.Thread(target=sendtoserverqueue,args=(cl,addr1)).start()
