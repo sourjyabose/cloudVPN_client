@@ -4,19 +4,23 @@ import select
 import threading
 import queue
 import random
-dns={}
-sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
-sock.bind(("0.0.0.0",8080));
-sock.listen(5);
+import multiprocessing
+if __name__=='__main__':
+    
+    dns={}
+    sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
+    sock.bind(("0.0.0.0",8080));
+    sock.listen(5);
 
 
-servsocklist=[("192.0.0.2",8081),("10.46.211.253",8081)]
+    servsocklist=[("10.216.19.166",8081)]
 
 
 
 socketstorage={}
 def sendtoserverqueue(c,addr,datapackets):
-    magnum=random.randint(1,20000)    
+    magnum=random.randint(1,20000)
+        
     firstbindat=c.recv(1024)
     c.setblocking(False)
     decoded=firstbindat.split(b"\r\n\r\n")[0].decode();
@@ -38,6 +42,7 @@ def sendtoserverqueue(c,addr,datapackets):
         
         dns[host]=ip;
     socketstorage[magnum]=c;
+    ipccoms.put(socketstorage);
     #relsock.setblocking(False)
     datapackets.put(b"jiolinkXoXoXoXsourjyakrishna"+f"{ip} {port} {magnum}".encode()+b"VooXoBsourjyaraushan"+firstbindat.split(b"\r\n\r\n")[1])
     
@@ -66,7 +71,7 @@ def senddatatoserver(datapackets,sockserv):
         sockserv.sendall(procbuf);
             #dpl=len(datapackets)
             #ind+=1;
-def receivefromserverandsendtoclient(clts):
+def receivefromserverandsendtoclient(clts,ipcoms):
     secondbuff=b''
     clts.setblocking(True)
     print("------")
@@ -102,22 +107,25 @@ def receivefromserverandsendtoclient(clts):
             checkandbreak=1;
             payloadheader=payloadheader.split()
             try:
-                socketstorage[int(payloadheader[2])].sendall(payloaddata)
+                ipcoms.get()[int(payloadheader[2])].sendall(payloaddata)
             except:
                 print("Connection closed from browser: ",payloadheader)
             #print(payloaddata.decode())
-dpq=[]
-for inx,servs in enumerate(servsocklist):
-    clts=socket.socket()
-    clts.connect(servs)
-    datapackets=queue.Queue();
-    dpq.append(datapackets);
-    threading.Thread(target=receivefromserverandsendtoclient,args=(clts,)).start()
-    threading.Thread(target=senddatatoserver,args=(datapackets,clts)).start();
+print(__name__);
+if __name__=='__main__':
+    dpq=[]
+    ipccoms=multiprocessing.Queue();
+    for inx,servs in enumerate(servsocklist):
+        clts=socket.socket()
+        clts.connect(servs)
+        datapackets=multiprocessing.Queue();
+        dpq.append(datapackets);
+        multiprocessing.Process(target=receivefromserverandsendtoclient,args=(clts,ipccoms)).start()
+        multiprocessing.Process(target=senddatatoserver,args=(datapackets,clts)).start();
 
-#threading.Thread(target=receivefromserverandsendtoclient).start()
-while True:
-    cl,addr1=sock.accept()
-    threading.Thread(target=sendtoserverqueue,args=(cl,addr1,dpq[random.randint(1,20000)%len(dpq)])).start()
+    #threading.Thread(target=receivefromserverandsendtoclient).start()
+    while True:
+        cl,addr1=sock.accept()
+        threading.Thread(target=sendtoserverqueue,args=(cl,addr1,dpq[random.randint(1,20000)%len(dpq)])).start()
 
 
