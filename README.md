@@ -1,5 +1,5 @@
 # Disclaimer
-### This applies to all the branches of this project wheter included in the branch or not.
+### This applies to all the branches of this project whether included in the branch or not.
 
 Copyright (c) Sourjya Basu Aadhar No.: 991150286646 Email: <sourjyabose@gmail.com> 
 
