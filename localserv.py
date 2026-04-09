@@ -5,6 +5,7 @@ import threading
 import queue
 import random
 import multiprocessing
+from multiprocessing.reduction import send_handle,recv_handle
 if __name__=='__main__':
     
     dns={}
@@ -16,7 +17,9 @@ if __name__=='__main__':
     servsocklist=[("127.0.0.1",8081)]
 
 
+def clientsocketdistributor(parentside,ipccoms):
 
+    return
 socketstorage={}
 def sendtoserverqueue(c,addr,datapackets):
     magnum=random.randint(1,20000)
@@ -122,7 +125,8 @@ if __name__=='__main__':
         clts.connect(servs)
         datapackets=multiprocessing.Queue();
         dpq.append(datapackets);
-        multiprocessing.Process(target=receivefromserverandsendtoclient,args=(clts,ipccoms)).start()
+        parentside , childside= multiprocessing.Pipe() 
+        procpid=multiprocessing.Process(target=receivefromserverandsendtoclient,args=(clts,ipccoms)).start()
         multiprocessing.Process(target=senddatatoserver,args=(datapackets,clts)).start();
 
     #threading.Thread(target=receivefromserverandsendtoclient).start()
