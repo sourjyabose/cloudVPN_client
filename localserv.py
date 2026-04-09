@@ -13,7 +13,7 @@ if __name__=='__main__':
     sock.listen(5);
 
 
-    servsocklist=[("10.216.19.166",8081)]
+    servsocklist=[("127.0.0.1",8081)]
 
 
 
