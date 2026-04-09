@@ -107,7 +107,9 @@ def receivefromserverandsendtoclient(clts,ipcoms):
             checkandbreak=1;
             payloadheader=payloadheader.split()
             try:
-                ipcoms.get()[int(payloadheader[2])].sendall(payloaddata)
+                datoj=ipcoms.get()
+                print(datoj)
+                datoj[int(payloadheader[2])].sendall(payloaddata)
             except:
                 print("Connection closed from browser: ",payloadheader)
             #print(payloaddata.decode())
