@@ -1,0 +1,52 @@
+<html>
+<style>
+input{
+    height:0px;
+    width:0px;
+}
+.slider,.knob{
+    
+    border-radius: 60px;
+}
+.slider{
+    position:relative;
+    width:100px;
+    height:51px;
+    border: 1px solid black;
+    color:blue;
+    text-align:right;
+    line-height:51px;
+    padding-right:10px;
+    transition:1s
+}
+.knob{
+    position:absolute;
+    border: 1px solid black;
+    transition:1s;
+    color:blue;
+    width:50px;
+    height:50px;
+    background-color: blue;
+    text-align: center;
+    line-height:50px;
+}
+input:checked + .slider{
+    background-color:darkturquoise;
+}
+input:checked + .slider .knob{
+    transform:translateX(60px);
+    color:white;
+    background-color: red;
+}
+
+</style>    
+<body style="min-width: 200px;min-height: 250px;border:3px solid black;margin: 0.5px;display:grid;place-items:center;">
+    <h1 style="color:blue;font-size:xx-large;-webkit-text-stroke: 1px black;"><b>CloudVPN+</b></h1>
+    <span style="margin-top:-25%;color:darkslateblue;">Status</span><span id="status" style="font-size:large;margin-top:-50%;color:darkslateblue;">Disconnected</span>
+    
+    <label style="margin-top:-30%"><input type="checkbox"> 
+    <div class="slider"><div class="knob"><b>OFF</b></div><b>ON</b></div>
+    </label>
+
+<script src="popup.js"></script>
+</body></html>

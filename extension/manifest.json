@@ -1,0 +1,13 @@
+{
+    "manifest_version":3,
+    "name":"vpn",
+    "version":"1.0",
+    "description":"VPN",
+    "action":{
+        "default_popup":"ui.html"
+    },
+    "permissions":["proxy","contextMenus","storage"],
+    "background":{"service_worker":"main.js",
+                  "type":"module"
+                }
+}
