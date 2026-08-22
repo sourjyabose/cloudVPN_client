@@ -4,13 +4,15 @@ import select
 import threading
 import queue
 import random
+import os
+os.system("cls");
 dns={}
 sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
 sock.bind(("0.0.0.0",8080));
 sock.listen(5);
 
 
-servsocklist=[("10.138.205.82",8081)]
+servsocklist=[("192.0.0.2",8081)]
 
 
 
