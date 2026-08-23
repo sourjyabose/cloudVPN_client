@@ -12,7 +12,7 @@ sock.bind(("0.0.0.0",8080));
 sock.listen(5);
 
 
-servsocklist=[("192.0.0.2",8081)]
+servsocklist=[("127.0.0.1",8081)]
 
 
 
