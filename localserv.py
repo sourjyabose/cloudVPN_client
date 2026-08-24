@@ -67,7 +67,7 @@ def gui():
     username=CTk.StringVar();
     remdata=CTk.StringVar();
     datausedtoday=CTk.StringVar();
-    speed=CTk.StringVar();
+    speed=CTk.StringVar()
     highestspeed=CTk.StringVar();
     
     def update():
