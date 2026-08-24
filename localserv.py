@@ -9,6 +9,7 @@ import customtkinter
 import customtkinter as CTk
 import customtkinter as ctk
 
+counter=random.randint(1,20000)  
 packetssofar=1;
 prev=0;
 def login(tab):
@@ -72,9 +73,9 @@ def gui():
     
     def update():
             global prev;
-            speed.set(f"Speed: {round(round(packetssofar/(1000*1000),2)-round(prev/(1000*1000),2),2)}Mbps")
+            speed.set(f"Speed: {round(round(packetssofar/(1000*1000),2)-round(prev/(1000*1000),2),2):.2f}Mbps")
             prev=packetssofar;
-            usagevar.set(f"Data Used: {round(packetssofar/(1000*1000*1000),2)}Gb")
+            usagevar.set(f"Data Used: {round(packetssofar/(1000*1000*1000),2):.2f}Gb")
             window.after(1000,update)
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=speed,compound="left",justify="left",anchor='w',width=100).grid(row=0,column=0)
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100).grid(row=1,column=0)
@@ -105,7 +106,9 @@ servsocklist=[("127.0.0.1",8081)]
 
 socketstorage={}
 def sendtoserverqueue(c,addr,datapackets):
-    magnum=random.randint(1,20000)    
+    global counter;
+    counter+=1;
+    magnum=counter; 
     firstbindat=c.recv(1024)
     c.setblocking(False)
     decoded=firstbindat.split(b"\r\n\r\n")[0].decode();
@@ -166,7 +169,7 @@ def receivefromserverandsendtoclient(clts):
         
         try:
             
-            receiveddat=secondbuff+clts.recv(1000000000)
+            receiveddat=secondbuff+clts.recv(10000)
             global packetssofar
             packetssofar+=len(receiveddat)
             print("Returning recv len: ",len(receiveddat))
