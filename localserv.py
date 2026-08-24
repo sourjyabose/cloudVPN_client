@@ -5,6 +5,92 @@ import threading
 import queue
 import random
 import os
+import customtkinter
+import customtkinter as CTk
+import customtkinter as ctk
+
+packetssofar=1;
+prev=0;
+def login(tab):
+    frame=CTk.CTkFrame(tab);
+    CTk.CTkLabel(frame,text="Please Login To Use").pack();
+    return frame;
+
+tabsarray=[]
+tabref={}
+
+def authsucc():
+    for i in tabsarray:
+        i.showframe();
+
+def gettabframe(name):
+    return tabsarray[tabref[name]].frame1
+
+
+def gui():
+
+    
+    
+    CTk.set_appearance_mode("system")
+    customtkinter.set_default_color_theme("blue")
+    window=customtkinter.CTk()
+    window.title("CloudVPN+")
+    window.resizable(False,False)
+    window.geometry("1000x600")
+    tabset=CTk.CTkTabview(window,width=950,height=550)
+    tabset.pack()
+
+    class createtabs:
+        def __init__(self,name):
+            self.tab=tabset.add(name)
+            self.frame1=CTk.CTkFrame(self.tab)
+            self.login=login(self.tab)
+            self.login.pack();
+            tabref[name]=len(tabsarray)
+            tabsarray.append(self);
+        def showframe(self):
+            self.login.pack_forget()
+            self.frame1.pack(fill='both',expand=True)
+            
+
+    createtabs("Usage Details")
+    createtabs("History")
+    createtabs("Blocked Sites")
+    createtabs("Servers")
+    createtabs("Logs")
+
+    
+    
+
+    #Usage Tab
+    usagevar=CTk.StringVar();
+    username=CTk.StringVar();
+    remdata=CTk.StringVar();
+    datausedtoday=CTk.StringVar();
+    speed=CTk.StringVar();
+    highestspeed=CTk.StringVar();
+    
+    def update():
+            global prev;
+            speed.set(f"Speed: {round(round(packetssofar/(1000*1000),2)-round(prev/(1000*1000),2),2)}Mbps")
+            prev=packetssofar;
+            usagevar.set(f"Data Used: {round(packetssofar/(1000*1000*1000),2)}Gb")
+            window.after(1000,update)
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=speed,compound="left",justify="left",anchor='w',width=100).grid(row=0,column=0)
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100).grid(row=1,column=0)
+    update()
+    authsucc()
+
+
+    window.mainloop()
+
+threading.Thread(target=gui).start();
+
+
+
+
+
+
 os.system("cls");
 dns={}
 sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
@@ -13,6 +99,7 @@ sock.listen(5);
 
 
 servsocklist=[("127.0.0.1",8081)]
+
 
 
 
@@ -49,6 +136,8 @@ def sendtoserverqueue(c,addr,datapackets):
             try:
                 print("queing for ",host);
                 data=c.recv(4096000)
+                global packetssofar
+                packetssofar+=len(data)
                 if (data != b''):
                     datapackets.put(b"jiolinkXoXoXoXsourjyakrishna"+f"{ip} {port} {magnum}".encode()+b"VooXoBsourjyaraushan"+data)
                 else:
@@ -78,6 +167,8 @@ def receivefromserverandsendtoclient(clts):
         try:
             
             receiveddat=secondbuff+clts.recv(1000000000)
+            global packetssofar
+            packetssofar+=len(receiveddat)
             print("Returning recv len: ",len(receiveddat))
             
             if(checkandbreak!=1):
