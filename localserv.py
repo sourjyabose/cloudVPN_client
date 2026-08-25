@@ -9,13 +9,19 @@ import customtkinter
 import customtkinter as CTk
 import customtkinter as ctk
 
+
+
+def noprint(*args):
+    pass
+
+print=noprint
+
+authdata=["UserNaN","QuotaNaN"]
 counter=random.randint(1,20000)  
 packetssofar=1;
 prev=0;
-def login(tab):
-    frame=CTk.CTkFrame(tab);
-    CTk.CTkLabel(frame,text="Please Login To Use").pack();
-    return frame;
+
+
 
 tabsarray=[]
 tabref={}
@@ -29,12 +35,37 @@ def gettabframe(name):
 
 
 def gui():
+    loginwindow=None
+    def loginpage():
+        nonlocal loginwindow;
+        loginwindow=ctk.CTkToplevel(window);
+        loginwindow.geometry("300x200")
+        loginwindow.title("Login")
+        loginwindow.attributes("-topmost",True)
+        
+        CTk.CTkLabel(loginwindow,text="Username: ").grid(row=0,column=0,padx=5)
+        CTk.CTkLabel(loginwindow,text="Password: ").grid(row=1,column=0,padx=5)
+        CTk.CTkEntry(loginwindow,placeholder_text="Enter Username",width=200).grid(pady=10,row=0,column=2)
+        CTk.CTkEntry(loginwindow,placeholder_text="Enter Password",width=200).grid(pady=10,row=1,column=2)
+        CTk.CTkButton(loginwindow,text="Login").grid(row=4,column=2)
+        CTk.CTkLabel(loginwindow,text="No account? Sign Up Now !").grid(row=3,column=2)
+        
+
+
+    def login(tab):
+        frame=CTk.CTkFrame(tab);
+        CTk.CTkLabel(frame,text="Please Login To Use",font=("Arial",20)).pack(pady=20);
+        CTk.CTkButton(frame,text="Continue to Login",command=loginpage).pack()
+        return frame;
+
+
 
     
+    window=customtkinter.CTk()
     
     CTk.set_appearance_mode("system")
     customtkinter.set_default_color_theme("blue")
-    window=customtkinter.CTk()
+    
     window.title("CloudVPN+")
     window.resizable(False,False)
     window.geometry("1000x600")
@@ -62,7 +93,7 @@ def gui():
 
     
     
-
+    
     #Usage Tab
     usagevar=CTk.StringVar();
     username=CTk.StringVar();
@@ -70,17 +101,25 @@ def gui():
     datausedtoday=CTk.StringVar();
     speed=CTk.StringVar()
     highestspeed=CTk.StringVar();
-    
+    quota=CTk.StringVar();
     def update():
             global prev;
+            remdata.set(f"Reamaining Data: NaN")
+            quota.set(f"Quota: {authdata[1]}")
+            username.set(f"Username: {authdata[0]}")
             speed.set(f"Speed: {round(round(packetssofar/(1000*1000),2)-round(prev/(1000*1000),2),2):.2f}Mbps")
             prev=packetssofar;
             usagevar.set(f"Data Used: {round(packetssofar/(1000*1000*1000),2):.2f}Gb")
             window.after(1000,update)
-    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=speed,compound="left",justify="left",anchor='w',width=100).grid(row=0,column=0)
-    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100).grid(row=1,column=0)
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=username,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=0+5,column=0,sticky='ew',pady=20)
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=speed,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=1+5,column=0,sticky='ew')
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=2+5,column=0,sticky='ew')
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=remdata,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=4+5,column=0,sticky='ew')
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=quota,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=3+5,column=0,sticky='ew')
     update()
-    authsucc()
+    #End Usage Tab
+
+    #authsucc()
 
 
     window.mainloop()
@@ -124,10 +163,11 @@ def sendtoserverqueue(c,addr,datapackets):
     try:
         ip=dns[host];
         
-    except: 
-        query=requests.get("https://one.one.one.one/dns-query?name="+host,headers={"accept":"application/dns-json"})
-        ip=query.json()["Answer"][len(query.json()["Answer"])-1]["data"];
-        
+    except:
+        #print(f"Querying {host}") 
+        #query=requests.get("https://one.one.one.one/dns-query?name="+host,headers={"accept":"application/dns-json"})
+        #ip=query.json()["Answer"][len(query.json()["Answer"])-1]["data"];
+        ip=socket.gethostbyname(host);
         dns[host]=ip;
     socketstorage[magnum]=c;
     #relsock.setblocking(False)
@@ -168,10 +208,10 @@ def receivefromserverandsendtoclient(clts):
     while True:
         
         try:
-            
-            receiveddat=secondbuff+clts.recv(10000)
+            rdatpsf=clts.recv(10000)
+            receiveddat=secondbuff+rdatpsf
             global packetssofar
-            packetssofar+=len(receiveddat)
+            packetssofar+=len(rdatpsf)
             print("Returning recv len: ",len(receiveddat))
             
             if(checkandbreak!=1):
