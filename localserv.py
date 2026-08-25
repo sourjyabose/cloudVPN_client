@@ -42,6 +42,7 @@ def gui():
         loginwindow.geometry("300x200")
         loginwindow.title("Login")
         loginwindow.attributes("-topmost",True)
+        authsucc()
         
         CTk.CTkLabel(loginwindow,text="Username: ").grid(row=0,column=0,padx=5)
         CTk.CTkLabel(loginwindow,text="Password: ").grid(row=1,column=0,padx=5)
