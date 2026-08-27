@@ -65,7 +65,7 @@ def gui():
     window=customtkinter.CTk()
     
     CTk.set_appearance_mode("system")
-    customtkinter.set_default_color_theme("blue")
+    customtkinter.set_default_color_theme("green")
     
     window.title("CloudVPN+")
     window.resizable(False,False)
