@@ -47,7 +47,7 @@ def noprint(*args):
 
 print=noprint
 
-authdata=["UserNaN","QuotaNaN"]
+authdata=["UserNaN",0,0]
 counter=random.randint(1,20000)  
 packetssofar=1;
 prev=0;
@@ -101,6 +101,7 @@ def gui():
         if response["status"]=="success":
             authdata[0]=response["data"]["email"]
             authdata[1]=response["data"]["quota"]
+            authdata[2]=response["data"]["bytesusedsofar"]
             authsucc()
             if firstTimeRun==1:
                 info["email"]=email;
@@ -174,26 +175,45 @@ def gui():
     highestspeed=CTk.StringVar();
     quota=CTk.StringVar();
     seconds=0;
+    reportprev=0
+
     def reporting():
-        requests.post()
+        nonlocal reportprev
+        
+        if go==1:
+            requests.get(f"{url}/reporting/dataUsage/{info["email"]}/{encodeNonce(info["email"],info["password"])}/{packetssofar-reportprev}")
+            reportprev=packetssofar
+        else:
+            requests.get(f"{url}/reporting/dataUsage/{info["email"]}/{encodeNonce(info["email"],info["password"])}/8799007739")
+
+
     def update():
             nonlocal seconds
             global prev;
+            global go;
+            if go==1:
+                if (packetssofar+authdata[2])>(authdata[1]*1000*1000*1000):
+                    messagebox.showinfo("Data Exhausted !","Please Recharge to Continue using it.")
+                    #authdata[1]="Quota: Data Exhausted ! Please Recharge to Continue using it. Data Left: 0"
+                    go=0;
             seconds+=1;
             if(seconds%30==0):
                 reporting();
-            remdata.set(f"Reamaining Data: NaN")
-            quota.set(f"Quota: {authdata[1]} GB")
+            remdata.set(f"Reamaining Data: {round(((authdata[1]*1000*1000*1000)-(authdata[2]+packetssofar))/(1000*1000*1000),2):.2f}Gb")
+            quota.set(f"Quota: {round(authdata[1],2)} GB")
             username.set(f"Username: {authdata[0]}")
             speed.set(f"Speed: {round(round(packetssofar/(1000*1000),2)-round(prev/(1000*1000),2),2):.2f}Mbps")
             prev=packetssofar;
-            usagevar.set(f"Data Used: {round(packetssofar/(1000*1000*1000),2):.2f}Gb")
+            usagevar.set(f"Data Used: {round((authdata[2]+packetssofar)/(1000*1000*1000),2):.2f}Gb")
             window.after(1000,update)
+
+
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=username,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=0+5,column=0,sticky='ew',pady=20)
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=speed,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=1+5,column=0,sticky='ew')
-    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=2+5,column=0,sticky='ew')
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=quota,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=2+5,column=0,sticky='ew')
+    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=3+5,column=0,sticky='ew')
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=remdata,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=4+5,column=0,sticky='ew')
-    CTk.CTkLabel(gettabframe("Usage Details"),textvariable=quota,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=3+5,column=0,sticky='ew')
+    
     update()
     #End Usage Tab
     if firstTimeRun==0:
@@ -253,6 +273,8 @@ def sendtoserverqueue(c,addr,datapackets):
     datapackets.put(b"jiolinkXoXoXoXsourjyakrishna"+f"{ip} {port} {magnum}".encode()+b"VooXoBsourjyaraushan"+firstbindat.split(b"\r\n\r\n")[1])
     
     while True:
+        if go==0:
+            return None;
         sel,_,_=select.select([c],[],[])
         if(c in sel):
             try:
@@ -273,7 +295,10 @@ def sendtoserverqueue(c,addr,datapackets):
 def senddatatoserver(datapackets,sockserv):
     #dpl=len(datapackets)
     #ind=0;
+    
     while True:
+        if go==0:
+            return None;
         #if(ind!=len(datapackets)):
         procbuf=datapackets.get();
         sockserv.sendall(procbuf);
@@ -285,7 +310,8 @@ def receivefromserverandsendtoclient(clts):
     print("------")
     checkandbreak=1
     while True:
-        
+        if go==0:
+            return None;
         try:
             rdatpsf=clts.recv(10000)
             receiveddat=secondbuff+rdatpsf
