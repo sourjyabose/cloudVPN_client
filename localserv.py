@@ -81,7 +81,7 @@ def gui():
         loginwindow.attributes("-topmost",True)
         #authsucc()
         
-        CTk.CTkLabel(loginwindow,text="Username: ").grid(row=0,column=0,padx=5)
+        CTk.CTkLabel(loginwindow,text="Email: ").grid(row=0,column=0,padx=5)
         CTk.CTkLabel(loginwindow,text="Password: ").grid(row=1,column=0,padx=5)
         email=CTk.CTkEntry(loginwindow,placeholder_text="Enter Email",width=200)
         email.grid(pady=10,row=0,column=2)
