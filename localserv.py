@@ -102,6 +102,7 @@ def gui():
             authdata[0]=response["data"]["email"]
             authdata[1]=response["data"]["quota"]
             authdata[2]=response["data"]["bytesusedsofar"]
+            servlst=requests.get(f"{url}/query/{email}/{encodeNonce(email,passwd)}")
             authsucc()
             if firstTimeRun==1:
                 info["email"]=email;
@@ -216,6 +217,10 @@ def gui():
     
     update()
     #End Usage Tab
+
+
+
+
     if firstTimeRun==0:
         process(info["email"],info["password"],None)
     #authsucc()
