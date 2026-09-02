@@ -21,8 +21,9 @@ go=0;
 validity=1;
 firstTimeRun=0;
 info={};
+serverlists1=[]
 load_dotenv()
-
+clientstartup=1
 try:
     info=pickle.load(open(".deviceInfo","rb"))
 except Exception as e:
@@ -47,7 +48,7 @@ def noprint(*args):
 
 print=noprint
 
-authdata=["UserNaN",0,0]
+authdata=["UserNaN",0,0,None]
 counter=random.randint(1,20000)  
 packetssofar=1;
 prev=0;
@@ -59,8 +60,8 @@ tabref={}
 
 def authsucc():
     global go;
-    print("Go set")
-    go=1;
+    
+    
     for i in tabsarray:
         i.showframe();
 
@@ -102,7 +103,7 @@ def gui():
             authdata[0]=response["data"]["email"]
             authdata[1]=response["data"]["quota"]
             authdata[2]=response["data"]["bytesusedsofar"]
-            servlst=requests.get(f"{url}/query/{email}/{encodeNonce(email,passwd)}")
+            authdata[3]=requests.get(f"{url}/query/{email}/{encodeNonce(email,passwd)}").json()
             authsucc()
             if firstTimeRun==1:
                 info["email"]=email;
@@ -184,11 +185,24 @@ def gui():
         if go==1:
             requests.get(f"{url}/reporting/dataUsage/{info["email"]}/{encodeNonce(info["email"],info["password"])}/{packetssofar-reportprev}")
             reportprev=packetssofar
-        else:
+        elif clientstartup!=1:
             requests.get(f"{url}/reporting/dataUsage/{info["email"]}/{encodeNonce(info["email"],info["password"])}/8799007739")
 
 
+    
+    def addserver(x):
+        global serverlists1
+        #temp.set(1)
+        serverlists1.append(x)
+    def connectreleasego():
+        global go
+        global clientstartup
+        clientstartup=0
+        go=1
+
+    renderdone=0
     def update():
+            nonlocal renderdone
             nonlocal seconds
             global prev;
             global go;
@@ -206,6 +220,25 @@ def gui():
             speed.set(f"Speed: {round(round(packetssofar/(1000*1000),2)-round(prev/(1000*1000),2),2):.2f}Mbps")
             prev=packetssofar;
             usagevar.set(f"Data Used: {round((authdata[2]+packetssofar)/(1000*1000*1000),2):.2f}Gb")
+
+            
+            if authdata[3]!=None and renderdone==0:
+                entryno=0
+                gridr=0
+                gridc=-1
+                for name in authdata[3]["servernamelist"]:
+                    gridc+=1
+                    if gridc==3:
+                        gridr+=1
+                        gridc=0
+                    
+                    CTk.CTkCheckBox(gettabframe("Servers"),text=name,command=lambda no=entryno: addserver(no)).grid(row=gridr,column=gridc,pady=5)
+                    entryno+=1
+                gridc+=1
+                CTk.CTkButton(gettabframe("Servers"),text="Connect",command=connectreleasego).grid(row=2,column=gridc)
+                renderdone=1
+
+
             window.after(1000,update)
 
 
@@ -214,9 +247,12 @@ def gui():
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=quota,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=2+5,column=0,sticky='ew')
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=usagevar,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=3+5,column=0,sticky='ew')
     CTk.CTkLabel(gettabframe("Usage Details"),textvariable=remdata,compound="left",justify="left",anchor='w',width=100,font=('Arial',20)).grid(row=4+5,column=0,sticky='ew')
+
+
     
     update()
     #End Usage Tab
+
 
 
 
@@ -241,8 +277,14 @@ sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);
 sock.bind(("0.0.0.0",8080));
 sock.listen(5);
 
-
-servsocklist=[("127.0.0.1",8081)]
+servsocklist=[]
+while go==0:
+    time.sleep(0.001)
+if go==1:
+    
+    for server in serverlists1:
+        servsocklist.append((authdata[3]["iplist"][server],int(authdata[3]["portlist"][server])))
+    print(servsocklist)
 
 
 
